@@ -8,8 +8,9 @@ int timeSteps;
 int target;
 void schedulerInit();
 void timeStep();
-void scheduleProcesses(Process* processList[1000], int n);
-void runCurrentProcess(Process* processList[1000]);
+int getTime();
+void scheduleProcesses(Process* processList[1024], int n);
+void runCurrentProcess(Process* processList[1024]);
 
 #endif
 

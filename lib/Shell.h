@@ -3,10 +3,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "../lib/Process.h"
 
 void initShell();
-Process* shellHandler;
-
+void processArgument(char *arg);
 
 #endif

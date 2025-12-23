@@ -4,7 +4,7 @@
 
 struct Process{
     int pid;
-    char pName[10];
+    char pName[8];
     processFunc entry;
     processState state;
     int step;

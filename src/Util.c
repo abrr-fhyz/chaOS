@@ -1,4 +1,9 @@
 #include "../lib/Util.h"
+#include "../lib/Shell.h"
+
+char outputBuffer[1024][1024];
+int outputLoaded;
+int outputPrinted;
 
 void initOutput(){
    	outputHandler = createProcess("printf", output_process);
@@ -14,11 +19,18 @@ void initInput(){
 
 void printStartUp(int start){
 	if(start == 0){
-		printMessage("\t\t\t\t\t\t\t|||   CHA-OS   |||\n\n");
+		system("cls");
+		printMessage("\t\t\t\t\t\t\t   |||   CHA-OS   |||\n\n");
+		printMessage("\t\t\t\t\t\t|||\t      Copyright 2025\t\t|||\n\n");
 		printMessage("\t\t\t\t\t\tBooting chaOS Operating System........\n");
 		printMessage("\t\t\t\tOutput Boot Up\t\t\t---\t\t\tCompleted\n");
-	} else {
+	} else if(start == 1) {
 		printMessage("\t\t\t\t\t\tOperating System Initialized........\n");
+		printMessage("##############################################################################################################################\n\n\n");
+	} else {
+		system("cls");
+		printMessage("\t\t\t\t\t\t\t   |||   CHA-OS   |||\n\n");
+		printMessage("\t\t\t\t\t\t|||\t      Copyright 2025\t\t|||\n\n");
 		printMessage("##############################################################################################################################\n\n\n");
 	}
 }
@@ -31,13 +43,13 @@ void printMessage(const char *msg){
 	}
 	outputBuffer[outputLoaded][i] = '\0';
 	outputLoaded++;
-	if(outputLoaded == 1000){
+	if(outputLoaded == 1024){
 		outputLoaded = 0;
 	}
 }
 
 void printProcess(const char* pName, int id, int step, const char* currentState){
-	char buffer[1000];
+	char buffer[1024];
 	snprintf(buffer, sizeof(buffer), "Process: %s\t\t|| PID: %d\t\t|| Steps: %d\t\t|| %s\n", pName, id, step, currentState);
 	printMessage(buffer);
 }
@@ -48,7 +60,25 @@ void printNext(){
 	}
 	printf("%s", outputBuffer[outputPrinted]);
 	outputPrinted++;
-	if(outputPrinted == 1000){
+	if(outputPrinted == 1024){
 		outputPrinted = 0;
 	}
+}
+
+void printLast(){
+	while(outputLoaded > outputPrinted){
+		printNext();
+	}
+}
+
+void waitForInput(){
+	printMessage("\nroot> ");
+	printLast();
+	char arg[1024] = "";
+	int cnt = 0;
+	char c;
+	while(scanf("%c", &c) == 1 && c != '\n'){
+		arg[cnt++] = c;
+	}
+	processArgument(arg);
 }

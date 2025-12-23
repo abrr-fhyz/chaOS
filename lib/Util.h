@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../lib/Process.h"
 #include "../lib/Handler.h"
 
@@ -15,9 +16,7 @@ void printStartUp();
 void printMessage(const char *msg);
 void printProcess(const char* pName, int id, int step, const char* currentState);
 void printNext();
-
-char outputBuffer[1000][1000];
-int outputLoaded;
-int outputPrinted;
+void printLast();
+void waitForInput();
 
 #endif

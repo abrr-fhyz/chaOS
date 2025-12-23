@@ -9,7 +9,11 @@ void timeStep(){
 	timeSteps ++;
 }
 
-void scheduleProcesses(Process* processList[1000], int n){
+int getTime(){
+	return timeSteps;
+}
+
+void scheduleProcesses(Process* processList[1024], int n){
 	Process *prevProcess = processList[target];
 	setState(prevProcess, READY);
 	target = timeSteps % n;
@@ -17,7 +21,7 @@ void scheduleProcesses(Process* processList[1000], int n){
 	setState(newProcess, RUNNING);
 }
 
-void runCurrentProcess(Process* processList[1000]){
+void runCurrentProcess(Process* processList[1024]){
 	Process *currentProcess = processList[target];
 	executeProcess(currentProcess);
 }

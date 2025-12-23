@@ -4,7 +4,7 @@
 
 struct Handler{
     int cnt;
-    Process* processList[1000];
+    Process* processList[1024];
 };
 
 void initHandler(){
@@ -45,7 +45,17 @@ void listProcesses(){
 }
 
 void schedule(){
+    int t = getTime();
+    if(!(t % 64)){
+        waitForInput();
+    }
     int n = processHandler->cnt;
     scheduleProcesses(processHandler->processList, n);
     runCurrentProcess(processHandler->processList);
+}
+
+void shutDown(){
+    printMessage("Shutting Down......");
+    printLast();
+    exit(0);
 }

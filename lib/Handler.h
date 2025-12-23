@@ -3,6 +3,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include "Process.h"
 
 typedef struct Handler Handler;
 Handler* processHandler;
@@ -13,6 +14,7 @@ void incrementCounter();
 int getCounter();
 Process* createProcess(const char *name, processFunc entry);
 void listProcesses();
+void shutDown();
 
 void schedule();
 

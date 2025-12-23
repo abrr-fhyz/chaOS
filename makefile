@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -I lib
-TARGET = a
+TARGET = chaos
 SRC_DIR = src
 LIB_DIR = lib
 

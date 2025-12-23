@@ -6,27 +6,13 @@
 #include "lib/Scheduler.h"
 
 void bootLoader(){
-	system("cls");
 	initHandler();
 	Process *idle = createProcess("idle", idle_process);
 	Process *init = createProcess("init", init_process);
 }
 
 void kernelLoop(){
-	int t = 50;
-	while(t--){
-		timeStep();
-		schedule();
-	}
-	listProcesses();
-	t = 100;
-	while(t--){
-		timeStep();
-		schedule();
-	}
-	listProcesses();
-	t = 100;
-	while(t--){
+	while(1){
 		timeStep();
 		schedule();
 	}
