@@ -8,11 +8,13 @@ typedef struct Directory Directory;
 typedef struct{
 	char fileName[16];
 	char fileContent[1024];
+	int fileSize;
 }File;
 
 typedef struct Directory{
 	char directoryName[16];
 	int subDirectoriesNum;
+	int fileNum;
 	File* files[64];
 	Directory* parentDirectory;
 	Directory* subDirectories[64];
@@ -28,6 +30,15 @@ void setDirectoryName(Directory *dir, char *name){
 		i++;
 	}
 	dir->directoryName[i] = '\0';
+}
+
+void setFileName(File *file, char *name){
+	int i = 0;
+	while(name[i] != '\0'){
+		file->fileName[i] = name[i];
+		i++;
+	}
+	file->fileName[i] = '\0';
 }
 
 void pathAppend(Directory *dir){
@@ -70,6 +81,7 @@ void mkdir(char *dirName){
 	setDirectoryName(newDir, dirName);
 	newDir->parentDirectory = workingDirectory;
 	newDir->subDirectoriesNum = 0;
+	newDir->fileNum = 0;
 	workingDirectory->subDirectories[workingDirectory->subDirectoriesNum] = newDir;
 	workingDirectory->subDirectoriesNum++;
 }
@@ -100,6 +112,82 @@ void ls(){
 	for(int i=0; i<workingDirectory->subDirectoriesNum; i++){
 		printLs("Dir", "-", workingDirectory->subDirectories[i]->directoryName);
 	}
+	for(int i=0; i<workingDirectory->fileNum; i++){
+		char buffer[8];
+		snprintf(buffer, sizeof(buffer), "%dB", workingDirectory->files[i]->fileSize);
+		printLs("File", buffer, workingDirectory->files[i]->fileName);
+	}
+}
+
+void touch(char *fileName){
+	if(workingDirectory->fileNum >= 64){
+		return;
+	}
+	if(strLen(fileName) == 0 || strLen(fileName) > 16){
+		return;
+	}
+	File *newFile = (File*)malloc(sizeof(File));
+	setFileName(newFile, fileName);
+	newFile->fileSize = 0;
+	workingDirectory->files[workingDirectory->fileNum] = newFile;
+	workingDirectory->fileNum ++;
+}
+
+int findFileIndex(char *fileName){
+	int flag = -1;
+	for(int i=0; i<workingDirectory->fileNum; i++){
+		if(compare(fileName, workingDirectory->files[i]->fileName)){
+			flag = i;
+			break;
+		}
+	}
+	return flag;
+}
+
+void cat(char *fileName){
+	int idx = findFileIndex(fileName);
+	if(idx == -1){
+		printMessage("Not Found");
+		return;
+	}
+	char *content = workingDirectory->files[idx]->fileContent;
+	printMessage(content);
+}
+
+void del(char *fileName){
+	int flag = findFileIndex(fileName);
+	if(flag == -1){
+		printMessage("Not Found");
+		return;
+	}
+	for(int i=flag+1; i<workingDirectory->fileNum; i++){
+		workingDirectory->files[i-1] = workingDirectory->files[i];
+	}
+	workingDirectory->fileNum --;
+	if(workingDirectory->fileNum == 0){
+		workingDirectory->files[flag] = NULL;
+	}
+}
+
+void edit(char *fileName){
+	int idx = findFileIndex(fileName);
+	if(idx == -1){
+		printMessage("Not Found");
+		return;
+	}
+	cat(fileName);
+	printMessage("\n$Enter New Content: ");
+	fileEdit(idx);
+}
+
+void logContent(int idx, char *content){
+	for(int i=0; i<1024; i++){
+		workingDirectory->files[idx]->fileContent[i] = '\0';
+	}
+	for(int i=0; i<strLen(content); i++){
+		workingDirectory->files[idx]->fileContent[i] = content[i];
+	}
+	workingDirectory->files[idx]->fileSize = strLen(content) * 8;
 }
 
 char* getPath(){
@@ -111,6 +199,7 @@ void initFileSystem(){
 	setDirectoryName(root, "root");
 	root->parentDirectory = NULL;
 	root->subDirectoriesNum = 0;
+	root->fileNum = 0;
 	pathPtr[0] = '\0';
 	pathAppend(root);
 	workingDirectory = root;

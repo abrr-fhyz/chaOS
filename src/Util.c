@@ -13,6 +13,12 @@ void initOutput(){
     printStartUp(0);
 }
 
+void raiseError(int x, int y){
+	char buffer[1024];
+	snprintf(buffer, sizeof(buffer), "Incorrect number of arguments: Expected %d, Found %d\n", x, y);
+	printMessage(buffer);
+}
+
 int compare(char *str1, char *str2){
 	int cnt = 0;
 	while(str1[cnt] != '\0'){
@@ -111,4 +117,15 @@ void waitForInput(){
 		arg[cnt++] = c;
 	}
 	processArgument(arg);
+}
+
+void fileEdit(int fileIdx){
+	printLast();
+	char content[1024];
+	int cnt = 0;
+	char c;
+	while(scanf("%c", &c) == 1 && c != '\n'){
+		content[cnt++] = c;
+	}
+	logContent(fileIdx, content);
 }

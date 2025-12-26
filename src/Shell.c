@@ -32,7 +32,8 @@ void initShell(){
 }
 
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo\t- print next string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir\t\t- make new directory\n\tcd\t\t- change current directory\n\texit\t\t- exit interface\n");
+	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT as a string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir DIR\t- make new directory DIR\n\tls\t\t- list available directories and files\n\tcd\t\t- change current directory\n"
+		"\ttouch FILE\t- create an empty file FILE\n\tedit FILE\t- edit the file FILE\n\tcat FILE\t- show the contents of the file FILE\n\tmv PathA PathB\t- move a given file from PathA to PathB\n\tcp PathA PathB\t- copy file from PathA to PathB\n\tdel FILE\t- delete the file FILE\n\texit\t\t- exit interface\n");
 }
 
 void splitCmd(char *cmd){
@@ -87,10 +88,44 @@ void processArgument(char *arg){
 		ls();
 	}
 	else if(compare(argv[0], "mkdir")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
 		mkdir(argv[1]);
 	}
 	else if(compare(argv[0], "cd")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
 		cd(argv[1]);
+	}
+	else if(compare(argv[0], "touch")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		touch(argv[1]);
+	}
+	else if(compare(argv[0], "cat")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		cat(argv[1]);
+	}
+	else if(compare(argv[0], "edit")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		edit(argv[1]);
+	}
+	else if(compare(argv[0], "mv")){
+		if(strLen(argv[1]) == 0)
+			raiseError(3, 1);
+		//mv(argv[1]);
+	}
+	else if(compare(argv[0], "cp")){
+		if(strLen(argv[1]) == 0)
+			raiseError(3, 1);
+		//cp(argv[1]);
+	}
+	else if(compare(argv[0], "del")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		del(argv[1]);
 	}
 	else{
 		printMessage("Unrecognised Command. Try 'help' for options.");

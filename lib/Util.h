@@ -17,5 +17,7 @@ void printLast();
 void waitForInput();
 int compare(char *str1, char *str2);
 int strLen(char *str1);
+void raiseError(int x, int y);
+void fileEdit(int fileIdx);
 
 #endif
