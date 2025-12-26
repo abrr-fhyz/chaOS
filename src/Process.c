@@ -1,6 +1,7 @@
 #include "../lib/Process.h"
 #include "../lib/Util.h"
 #include "../lib/Shell.h"
+#include "../lib/File.h"
 
 struct Process{
     int pid;
@@ -77,11 +78,16 @@ void init_process(Process *p) {
             return;
 
         case 3:
-            printStartUp(1);
+            initFileSystem();
             p->step++;
             return;
 
         case 4:
+            printStartUp(1);
+            p->step++;
+            return;
+
+        case 5:
             return;
     }
 }
@@ -100,6 +106,10 @@ void input_process(Process *p) {
 }
 
 void shell_process(Process *p) {
+    p->step++;
+}
+
+void fs_process(Process *p) {
     p->step++;
 }
 

@@ -7,8 +7,8 @@
 
 void bootLoader(){
 	initHandler();
-	Process *idle = createProcess("idle", idle_process);
-	Process *init = createProcess("init", init_process);
+	createProcess("idle", idle_process);
+	createProcess("init", init_process);
 }
 
 void kernelLoop(){

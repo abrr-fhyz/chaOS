@@ -2,9 +2,10 @@
 #include "../lib/Handler.h"
 #include "../lib/Util.h"
 #include "../lib/Process.h"
+#include "../lib/File.h"
 
-Process* shellHandler;
 char argv[2][1024];
+char cdArray[16][16];
 
 void split(char *arg){
 	for(int i=0; i<2; i++){
@@ -25,25 +26,44 @@ void split(char *arg){
 	}
 }
 
-int compare(char *str1, char *str2){
-	int cnt = 0;
-	while(str1[cnt] != '\0'){
-		if(str1[cnt] != str2[cnt])
-			return 0;
-		cnt ++;
-	}
-	if(str2[cnt] != '\0')
-		return 0;
-	return 1;
-}
-
 void initShell(){
-	shellHandler = createProcess("shell", shell_process);
+	createProcess("shell", shell_process);
 	printMessage("\t\t\t\tShell Boot Up\t\t\t---\t\t\tCompleted\n");
 }
 
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\texit\t\t- exist interface\n");
+	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo\t- print next string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir\t\t- make new directory\n\tcd\t\t- change current directory\n\texit\t\t- exit interface\n");
+}
+
+void splitCmd(char *cmd){
+	for(int i=0; i<16; i++)
+		for(int j=0; j<16; j++)
+			cdArray[i][j] = '\0';
+
+	int cnt = 0, idx = 0;
+	for(int i=0; i<strLen(cmd); i++){
+		if(cmd[i] == '\\'){
+			idx ++;
+			cnt = 0;
+			continue;
+		}
+		cdArray[idx][cnt] = cmd[i];
+		cnt ++;
+	}
+}
+
+
+void cd(char *cmd){
+	splitCmd(cmd);
+	for(int i=0; i<16; i++){
+		if(cdArray[i][0] == '\0')
+			break;
+		if(compare(cdArray[i], "..")){
+			cdBack();
+		} else {
+			cdFront(cdArray[i]);
+		}
+	}
 }
 
 void processArgument(char *arg){
@@ -62,6 +82,15 @@ void processArgument(char *arg){
 	}
 	else if(compare(argv[0], "exit")){
 		shutDown();
+	}
+	else if(compare(argv[0], "ls")){
+		ls();
+	}
+	else if(compare(argv[0], "mkdir")){
+		mkdir(argv[1]);
+	}
+	else if(compare(argv[0], "cd")){
+		cd(argv[1]);
 	}
 	else{
 		printMessage("Unrecognised Command. Try 'help' for options.");

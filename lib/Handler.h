@@ -9,13 +9,9 @@ typedef struct Handler Handler;
 Handler* processHandler;
 
 void initHandler();
-void initCounter();
-void incrementCounter();
-int getCounter();
-Process* createProcess(const char *name, processFunc entry);
+void createProcess(const char *name, processFunc entry);
 void listProcesses();
 void shutDown();
-
 void schedule();
 
 #endif

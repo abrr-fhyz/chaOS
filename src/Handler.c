@@ -26,13 +26,12 @@ int getCounter(){
     return processHandler->cnt;
 }
 
-Process* createProcess(const char *name, processFunc entry){
+void createProcess(const char *name, processFunc entry){
     Process *p = setUpProcess(name, entry);
     int pid = getCounter();
     setPID(p, pid);
     processHandler->processList[pid] = p;
     incrementCounter();
-    return p;
 }
 
 void listProcesses(){
@@ -55,7 +54,7 @@ void schedule(){
 }
 
 void shutDown(){
-    printMessage("Shutting Down......");
+    printMessage("\n\nChaOS Shutting Down......");
     printLast();
     exit(0);
 }

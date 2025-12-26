@@ -1,19 +1,40 @@
 #include "../lib/Util.h"
 #include "../lib/Shell.h"
+#include "../lib/File.h"
 
 char outputBuffer[1024][1024];
 int outputLoaded;
 int outputPrinted;
 
 void initOutput(){
-   	outputHandler = createProcess("printf", output_process);
+   	createProcess("printf", output_process);
     outputLoaded = 0;
     outputPrinted = 0;
     printStartUp(0);
 }
 
+int compare(char *str1, char *str2){
+	int cnt = 0;
+	while(str1[cnt] != '\0'){
+		if(str1[cnt] != str2[cnt])
+			return 0;
+		cnt ++;
+	}
+	if(str2[cnt] != '\0')
+		return 0;
+	return 1;
+}
+
+int strLen(char *str1){
+	int cnt = 0;
+	while(str1[cnt] != '\0'){
+		cnt ++;
+	}
+	return cnt;
+}
+
 void initInput(){
-   	inputHandler = createProcess("scanf", input_process);
+   	createProcess("scanf", input_process);
    	printMessage("\t\t\t\tInput Boot Up\t\t\t---\t\t\tCompleted\n");
 }
 
@@ -48,6 +69,12 @@ void printMessage(const char *msg){
 	}
 }
 
+void printLs(const char* type, const char* size, const char* name){
+	char buffer[1024];
+	snprintf(buffer, sizeof(buffer), "%s\t\t%s\t\t%s\n", type, size, name);
+	printMessage(buffer);
+}
+
 void printProcess(const char* pName, int id, int step, const char* currentState){
 	char buffer[1024];
 	snprintf(buffer, sizeof(buffer), "Process: %s\t\t|| PID: %d\t\t|| Steps: %d\t\t|| %s\n", pName, id, step, currentState);
@@ -72,7 +99,10 @@ void printLast(){
 }
 
 void waitForInput(){
-	printMessage("\nroot> ");
+	char *path = getPath();
+	char buffer[1024];
+	snprintf(buffer, sizeof(buffer), "\n$%s> ", path);
+	printMessage(buffer);
 	printLast();
 	char arg[1024] = "";
 	int cnt = 0;
