@@ -134,9 +134,13 @@ void fileEdit(int fileIdx){
 	printLast();
 	char content[1024];
 	int cnt = 0;
-	char c;
-	while(scanf("%c", &c) == 1 && c != '\n'){
+	char c, prev = '\0';
+	while(scanf("%c", &c) == 1){
+		if(prev != '\0' && prev == '\n' && c == '\n'){
+			break;
+		}
 		content[cnt++] = c;
+		prev = c;
 	}
 	logContent(fileIdx, content);
 }

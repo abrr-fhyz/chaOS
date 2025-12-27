@@ -8,6 +8,7 @@ char argv[2][1024];
 char cdArray[16][16];
 char pathArray[16][16];
 char compoundPaths[2][64];
+char intructions[32][64];
 
 char currentPath[64];
 char fileName[16];
@@ -40,8 +41,9 @@ void initShell(){
 }
 
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT as a string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir DIR\t- make new directory DIR\n\tls\t\t- list available directories and files\n\tcd\t\t- change current directory\n"
-		"\ttouch FILE\t- create an empty file FILE\n\tedit PATH- edit the file present at the end of PATH\n\tcat PATH\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t- copy file from PATHA to PATHB\n\tdel PATH\t- delete the file at the end of PATH\n\texit\t\t- exit interface\n");
+	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT as a string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir DIR\t- make new directory DIR\n\tls\t\t- list available directories and files\n\tcd PATH\t\t- change current directory to PATH\n"
+		"\ttouch FILE\t- create an empty file FILE\n\tedit PATH\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t- copy file from PATHA to PATHB\n"
+		"\tdel PATH\t- delete the file at the end of PATH\n\t./FILE\t\t- executes console commands present in FILE in sequential order\n\texit\t\t- exit interface\n");
 }
 
 void splitCmd(char *cmd){
@@ -140,6 +142,10 @@ void cp(){
 	char content[1024];
 	for(int i=0; i<1024; i++)
 		content[i] = '\0';
+	if(ptr == NULL){
+		printMessage("Target File Not Found");
+		return;
+	}
 	for(int i=0; i<strLen(ptr); i++)
 		content[i] = ptr[i];
 	restorePath(currentPath);
@@ -152,9 +158,35 @@ void cp(){
 	printMessage(" ");
 }
 
+void exe(char *arg){
+	int n = strLen(arg);
+	for(int i=2; i<n; i++)
+		arg[i-2] = arg[i];
+	arg[n-2] = '\0';
+	char *ptr = getContent(fileName);
+	if(ptr == NULL){
+		printMessage("Executable File Not Found");
+		return;
+	}
+	int instr = 0, cnt = 0;
+	for(int i=0; i<strLen(ptr); i++){
+		if(ptr[i] == '\n'){
+			instr ++;
+			cnt = 0;
+			continue;
+		}
+		intructions[instr][cnt++] = ptr[i];
+	}
+	for(int i=0; i<instr+1; i++){
+		processArgument(intructions[i]);
+	}
+}
+
 void processArgument(char *arg){
 	split(arg);
 	if(compare(argv[0], "echo")){
+		int idx = strLen(argv[1]);
+		argv[1][idx] = '\n';
 		printMessage(argv[1]);
 	}
 	else if(compare(argv[0], "ps")){
@@ -226,6 +258,9 @@ void processArgument(char *arg){
 		processDirectory(argv[1]);
 		del(fileName);
 		restorePath(currentPath);
+	}
+	else if(argv[0][0] == '.' && argv[0][1] == '/'){
+		exe(argv[0]);
 	}
 	else{
 		printMessage("Unrecognised Command. Try 'help' for options.");

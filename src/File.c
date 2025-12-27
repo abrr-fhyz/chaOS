@@ -196,10 +196,15 @@ void edit(char *fileName){
 }
 
 void logContent(int idx, char *content){
+	int n = strLen(content);
+	if(n > 1024){
+		printMessage("File content exceeds maximum character limit");
+		n = 1024;
+	}
 	for(int i=0; i<1024; i++){
 		workingDirectory->files[idx]->fileContent[i] = '\0';
 	}
-	for(int i=0; i<strLen(content); i++){
+	for(int i=0; i<n; i++){
 		workingDirectory->files[idx]->fileContent[i] = content[i];
 	}
 	workingDirectory->files[idx]->fileSize = strLen(content) * 8;
@@ -211,6 +216,8 @@ char* getPath(){
 
 char* getContent(char *fileName){
 	int idx = findFileIndex(fileName);
+	if(idx == -1)
+		return NULL;
 	return workingDirectory->files[idx]->fileContent;
 }
 
