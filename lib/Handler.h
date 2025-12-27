@@ -13,6 +13,7 @@ void createProcess(const char *name, processFunc entry);
 void listProcesses();
 void shutDown();
 void schedule();
+void wait(int x);
 
 #endif
 

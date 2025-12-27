@@ -31,6 +31,17 @@ int compare(char *str1, char *str2){
 	return 1;
 }
 
+int contains(char *str, char ch){
+	int flag = -1;
+	for(int i=strLen(str)-1; i>=0; i--){
+		if(str[i] == ch){
+			flag = i;
+			break;
+		}
+	}
+	return flag;
+}
+
 int strLen(char *str1){
 	int cnt = 0;
 	while(str1[cnt] != '\0'){

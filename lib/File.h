@@ -10,9 +10,12 @@ void cdBack();
 void cdFront(char *newDir);
 void touch(char *fileName);
 void del(char *fileName);
-void cat(char *fileName);
 void edit(char *fileName);
 void logContent(int idx, char *content);
+int findFileIndex(char *fileName);
+char* cat(char *fileName);
+char* getContent(char *fileName);
 char* getPath();
+
 
 #endif

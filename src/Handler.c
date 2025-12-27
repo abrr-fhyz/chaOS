@@ -7,15 +7,15 @@ struct Handler{
     Process* processList[1024];
 };
 
+void initCounter(){
+    processHandler->cnt = 0;
+}
+
 void initHandler(){
     Handler *h = malloc(sizeof *h);
     processHandler = h;
     initCounter();
     schedulerInit();
-}
-
-void initCounter(){
-    processHandler->cnt = 0;
 }
 
 void incrementCounter(){
@@ -51,6 +51,13 @@ void schedule(){
     int n = processHandler->cnt;
     scheduleProcesses(processHandler->processList, n);
     runCurrentProcess(processHandler->processList);
+}
+
+void wait(int x){
+    while(x--){
+        timeStep();
+        schedule();
+    }
 }
 
 void shutDown(){

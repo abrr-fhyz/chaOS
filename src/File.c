@@ -77,6 +77,10 @@ void mkdir(char *dirName){
 	if(strLen(dirName) == 0 || strLen(dirName) > 16){
 		return;
 	}
+	if(contains(dirName, '\\') != -1){
+		printMessage("Illegal Character in name: \\\n");
+		return;
+	}
 	Directory *newDir = (Directory*)malloc(sizeof(Directory));
 	setDirectoryName(newDir, dirName);
 	newDir->parentDirectory = workingDirectory;
@@ -126,9 +130,15 @@ void touch(char *fileName){
 	if(strLen(fileName) == 0 || strLen(fileName) > 16){
 		return;
 	}
+	if(contains(fileName, '\\') != -1){
+		printMessage("Illegal Character in name: \\\n");
+		return;
+	}
 	File *newFile = (File*)malloc(sizeof(File));
 	setFileName(newFile, fileName);
 	newFile->fileSize = 0;
+	for(int i=0; i<1024; i++)
+		newFile->fileContent[i] = '\0';
 	workingDirectory->files[workingDirectory->fileNum] = newFile;
 	workingDirectory->fileNum ++;
 }
@@ -144,14 +154,19 @@ int findFileIndex(char *fileName){
 	return flag;
 }
 
-void cat(char *fileName){
+char* cat(char *fileName){
 	int idx = findFileIndex(fileName);
 	if(idx == -1){
 		printMessage("Not Found");
-		return;
+		return NULL;
 	}
 	char *content = workingDirectory->files[idx]->fileContent;
-	printMessage(content);
+	if(content[0] == '\0'){
+		content[0] = 'n';
+		content[1] = 'i';
+		content[2] = 'l';
+	}
+	return content;
 }
 
 void del(char *fileName){
@@ -194,6 +209,11 @@ char* getPath(){
 	return pathPtr;
 }
 
+char* getContent(char *fileName){
+	int idx = findFileIndex(fileName);
+	return workingDirectory->files[idx]->fileContent;
+}
+
 void initFileSystem(){
 	Directory *root = (Directory*)malloc(sizeof(Directory));
 	setDirectoryName(root, "root");
@@ -203,7 +223,7 @@ void initFileSystem(){
 	pathPtr[0] = '\0';
 	pathAppend(root);
 	workingDirectory = root;
-	createProcess("fileSys", fs_process);
+	createProcess("filSys", fs_process);
 	printMessage("\t\t\t\tFile System Boot Up\t\t---\t\t\tCompleted\n");
 }
 

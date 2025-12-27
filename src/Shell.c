@@ -6,6 +6,14 @@
 
 char argv[2][1024];
 char cdArray[16][16];
+char pathArray[16][16];
+char compoundPaths[2][64];
+
+char currentPath[64];
+char fileName[16];
+
+int continueArgument;
+
 
 void split(char *arg){
 	for(int i=0; i<2; i++){
@@ -33,7 +41,7 @@ void initShell(){
 
 void showHelp(){
 	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT as a string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir DIR\t- make new directory DIR\n\tls\t\t- list available directories and files\n\tcd\t\t- change current directory\n"
-		"\ttouch FILE\t- create an empty file FILE\n\tedit FILE\t- edit the file FILE\n\tcat FILE\t- show the contents of the file FILE\n\tmv PathA PathB\t- move a given file from PathA to PathB\n\tcp PathA PathB\t- copy file from PathA to PathB\n\tdel FILE\t- delete the file FILE\n\texit\t\t- exit interface\n");
+		"\ttouch FILE\t- create an empty file FILE\n\tedit PATH- edit the file present at the end of PATH\n\tcat PATH\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t- copy file from PATHA to PATHB\n\tdel PATH\t- delete the file at the end of PATH\n\texit\t\t- exit interface\n");
 }
 
 void splitCmd(char *cmd){
@@ -53,7 +61,6 @@ void splitCmd(char *cmd){
 	}
 }
 
-
 void cd(char *cmd){
 	splitCmd(cmd);
 	for(int i=0; i<16; i++){
@@ -65,6 +72,83 @@ void cd(char *cmd){
 			cdFront(cdArray[i]);
 		}
 	}
+}
+
+void processDirectory(char *cmd){
+	int flag = contains(cmd, '\\');
+	char *ptr = getPath();
+	for(int i=0; i<64; i++)
+		currentPath[i] = '\0';
+	for(int i=0; i<strLen(ptr); i++)
+		currentPath[i] = ptr[i];
+	for(int i=0; i<16; i++)
+		fileName[i] = '\0';
+	if(flag == -1){
+		for(int i=0; i<strLen(cmd); i++){
+			fileName[i] = cmd[i];
+		}
+		return;
+	}
+	for(int i=flag+1; i<strLen(cmd); i++){
+		fileName[i - (flag+1)] = cmd[i];
+	}
+	for(int i=flag; i<strLen(cmd); i++){
+		cmd[i] = '\0';
+	}
+	printMessage(cmd);
+	cd(cmd);
+}
+
+void restorePath(char *path){
+	cd("..\\..\\..\\..\\..\\..\\..\\..\\..");
+	cd(path);
+}
+
+void processCompoundArgument(char *cmd){
+	for(int i=0; i<64; i++)
+		for(int j=0; j<64; j++)
+			compoundPaths[i][j] = '\0';
+	int idx = 0, cnt = 0;
+	continueArgument = 1;
+	for(int i=0; i<strLen(cmd); i++){
+		if(cmd[i] == ' '){
+			idx ++;
+			cnt = 0;
+			if(idx == 2){
+				raiseError(3, 4);
+				continueArgument = 0;
+				return;
+			}
+			continue;
+		}
+		compoundPaths[idx][cnt++] = cmd[i];
+	}
+	if(!idx){
+		raiseError(3, 2);
+		continueArgument = 0;
+		return;
+	}
+}
+
+void cp(){
+	if(compare(compoundPaths[0], compoundPaths[1])){
+		printMessage("Can not move file with same name within same directory.");
+		return;
+	}
+	processDirectory(compoundPaths[0]);
+	char *ptr = getContent(fileName);
+	char content[1024];
+	for(int i=0; i<1024; i++)
+		content[i] = '\0';
+	for(int i=0; i<strLen(ptr); i++)
+		content[i] = ptr[i];
+	restorePath(currentPath);
+	wait(3);
+	processDirectory(compoundPaths[1]);
+	touch(fileName);
+	int idx = findFileIndex(fileName);
+	logContent(idx, content);
+	restorePath(currentPath);
 }
 
 void processArgument(char *arg){
@@ -105,30 +189,45 @@ void processArgument(char *arg){
 	else if(compare(argv[0], "cat")){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
-		cat(argv[1]);
+		processDirectory(argv[1]);
+		char* content = cat(fileName);
+		if(content != NULL)
+			printMessage(content);
+		restorePath(currentPath);
+
 	}
 	else if(compare(argv[0], "edit")){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
-		edit(argv[1]);
+		processDirectory(argv[1]);
+		edit(fileName);
+		restorePath(currentPath);
 	}
 	else if(compare(argv[0], "mv")){
 		if(strLen(argv[1]) == 0)
 			raiseError(3, 1);
-		//mv(argv[1]);
+		processCompoundArgument(argv[1]);
+		if(continueArgument){
+			cp();
+			del(compoundPaths[0]);
+		}
 	}
 	else if(compare(argv[0], "cp")){
 		if(strLen(argv[1]) == 0)
 			raiseError(3, 1);
-		//cp(argv[1]);
+		processCompoundArgument(argv[1]);
+		if(continueArgument)
+			cp();
 	}
 	else if(compare(argv[0], "del")){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
-		del(argv[1]);
+		processDirectory(argv[1]);
+		del(fileName);
+		restorePath(currentPath);
 	}
 	else{
 		printMessage("Unrecognised Command. Try 'help' for options.");
 	}
-
+	wait(2);
 }
