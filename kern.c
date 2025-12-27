@@ -1,8 +1,6 @@
 #include<stdio.h>
-#include<stdlib.h>
 #include "lib/Process.h"
 #include "lib/Handler.h"
-#include "lib/Util.h"
 #include "lib/Scheduler.h"
 
 void bootLoader(){
@@ -14,7 +12,7 @@ void bootLoader(){
 void kernelLoop(){
 	while(1){
 		timeStep();
-		schedule();
+		schedule(1);
 	}
 }
 

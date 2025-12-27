@@ -12,7 +12,7 @@ void initHandler();
 void createProcess(const char *name, processFunc entry);
 void listProcesses();
 void shutDown();
-void schedule();
+void schedule(int flag);
 void wait(int x);
 
 #endif

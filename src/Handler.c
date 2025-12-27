@@ -43,11 +43,10 @@ void listProcesses(){
     }
 }
 
-void schedule(){
+void schedule(int flag){
     int t = getTime();
-    if(!(t % 64)){
+    if(!(t % 64) && flag)
         waitForInput();
-    }
     int n = processHandler->cnt;
     scheduleProcesses(processHandler->processList, n);
     runCurrentProcess(processHandler->processList);
@@ -56,7 +55,7 @@ void schedule(){
 void wait(int x){
     while(x--){
         timeStep();
-        schedule();
+        schedule(0);
     }
 }
 

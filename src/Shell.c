@@ -95,7 +95,7 @@ void processDirectory(char *cmd){
 	for(int i=flag; i<strLen(cmd); i++){
 		cmd[i] = '\0';
 	}
-	printMessage(cmd);
+	printMessage(" ");
 	cd(cmd);
 }
 
@@ -149,6 +149,7 @@ void cp(){
 	int idx = findFileIndex(fileName);
 	logContent(idx, content);
 	restorePath(currentPath);
+	printMessage(" ");
 }
 
 void processArgument(char *arg){
