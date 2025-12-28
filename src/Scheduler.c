@@ -15,7 +15,8 @@ int getTime(){
 
 void scheduleProcesses(Process* processList[1024], int n){
 	Process *prevProcess = processList[target];
-	setState(prevProcess, READY);
+	if(getState(prevProcess) != TERMINATED)
+		setState(prevProcess, READY);
 	target = timeSteps % n;
 	Process *newProcess = processList[target];
 	setState(newProcess, RUNNING);

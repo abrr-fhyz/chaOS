@@ -26,6 +26,7 @@ void shell_process(Process *p);
 void fs_process(Process *p);
 
 void setState(Process *p, processState s);
+processState getState(Process *p);
 void executeProcess(Process *p);
 
 #endif

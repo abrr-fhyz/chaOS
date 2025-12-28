@@ -41,9 +41,10 @@ void initShell(){
 }
 
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t- show recognised commands\n\techo TEXT\t- print TEXT as a string\n\tps\t\t- list processes\n\tclear\t\t- clear screen\n\tmkdir DIR\t- make new directory DIR\n\tls\t\t- list available directories and files\n\tcd PATH\t\t- change current directory to PATH\n"
-		"\ttouch FILE\t- create an empty file FILE\n\tedit PATH\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t- copy file from PATHA to PATHB\n"
-		"\tdel PATH\t- delete the file at the end of PATH\n\t./FILE\t\t- executes console commands present in FILE in sequential order\n\texit\t\t- exit interface\n");
+	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\tls var\t\t- list available variables\n\t\t\t\tls label\t- list available labels\n\tcd PATH\t\t\t- change current directory to PATH\n"
+		"\ttouch FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
+		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\tstr VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
+		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
 }
 
 void splitCmd(char *cmd){

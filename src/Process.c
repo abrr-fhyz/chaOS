@@ -15,6 +15,10 @@ void setState(Process *p, processState s){
     p->state = s;
 }
 
+processState getState(Process *p){
+    return p->state;
+}
+
 void executeProcess(Process *p){
     p->entry(p);
 }
@@ -31,7 +35,7 @@ void setpName(Process *p, const char *name){
 Process* setUpProcess(const char *name, processFunc entry){
     Process *p = malloc(sizeof *p);
     setpName(p, name);
-    p->state = READY;
+    setState(p, READY);
     p->entry = entry;
     p->step = 0;
     return p;
@@ -39,7 +43,7 @@ Process* setUpProcess(const char *name, processFunc entry){
 
 void getProcessData(Process *p){
     char *currentState;
-    switch(p->state){
+    switch(getState(p)){
         case 0:
             currentState = "READY";
             break;
@@ -88,6 +92,7 @@ void init_process(Process *p) {
             return;
 
         case 5:
+            setState(p, TERMINATED);
             return;
     }
 }
