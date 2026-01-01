@@ -6,12 +6,15 @@
 void initFileSystem();
 
 int findFileIndex(char *fileName);
-int findVariable(char *name);
+int variableExists(char *name);
+int getVarValue(int idx);
+void setVarValue(int idx, int val);
 void logContent(int idx, char *content);
 char* getContent(int fileIdx);
 char* getPath();
 
 void ls();
+void lsVar();
 void mkdir(char *dirName);
 void cdBack();
 void cdFront(char *newDir);

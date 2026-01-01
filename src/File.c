@@ -119,14 +119,21 @@ int findFileIndex(char *fileName){
 	}
 	return flag;
 }
-int findVariable(char *name){
+int variableExists(char *name){
+	int flag = -1;
 	for(int i=0; i<varCnt; i++){
 		if(compare(variables[i]->variableName, name)){
-			return variables[i]->value;
+			flag = i;
+			break;
 		}
 	}
-	printMessage("Variable not found\n");
-	return 0;
+	return flag;
+}
+int getVarValue(int idx){
+	return variables[idx]->value;
+}
+void setVarValue(int idx, int val){
+	variables[idx]->value = val;
 }
 int determineEligibility(){
 
@@ -194,6 +201,14 @@ void ls(){
 		printLs("File", buffer, workingDirectory->files[i]->fileName);
 	}
 }
+void lsVar(){
+	printMessage("Type\t\tName\t\tValue\n____________________________________________________\n");
+	for(int i=0; i<varCnt; i++){
+		char buffer[8];
+		snprintf(buffer, sizeof(buffer), "%d", variables[i]->value);
+		printLs("Var", variables[i]->variableName, buffer);
+	}
+}
 void touch(char *fileName){
 	if(workingDirectory->fileNum >= 64)
 		return;
@@ -252,6 +267,8 @@ void edit(char *fileName){
 	fileEdit(idx);
 }
 void storeVar(char *var){
+	if(strLen(var) == 0 || strLen(var) > 16)
+		return;
 	if(contains(var, '\\') != -1){
 		printMessage("Illegal Character in name: \\\n");
 		return;
@@ -261,6 +278,7 @@ void storeVar(char *var){
 	Variable *newVar = (Variable*)malloc(sizeof(Variable));
 	for(int i=0; i<strLen(var); i++)
 		newVar->variableName[i] = var[i];
+	newVar->variableName[strLen(var)] = '\0';
 	newVar->value = 0;
 	variables[varCnt++] = newVar;
 	if(varCnt == 64)

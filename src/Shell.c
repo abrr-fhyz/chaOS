@@ -45,7 +45,7 @@ void split(char *arg){
 void showHelp(){
 	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\tls var\t\t- list available variables\n\t\t\t\tls label\t- list available labels\n\tcd PATH\t\t\t- change current directory to PATH\n"
 		"\tmake FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
-		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP (+, -, *, /, %, &, |) on variables VARA and VARB\n\tstr VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
+		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP (+, -, *, /, %, &, |) on variables VARA and VARB\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
 		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
 }
 void splitCmd(char *cmd){
@@ -152,10 +152,6 @@ void cp(){
 	restorePath(currentPath);
 	printMessage(" ");
 }
-int getValue(char *var){
-	int val = findVariable(var);
-	return val;
-}
 void calc(char *arg){
 	int n = strLen(arg);
 	char parts[3][16] = {{0}};
@@ -172,8 +168,14 @@ void calc(char *arg){
 		raiseError(4, val+2);
 		return;
 	}
-	int operandX = getValue(parts[0]);
-	int operandY = getValue(parts[2]);
+	int operandX = variableExists(parts[0]);
+	int operandY = variableExists(parts[2]);
+	if(operandY == -1 || operandX == -1){
+		printMessage("One or both of the variables do not exist\n");
+		return;
+	}
+	operandX = getVarValue(operandX);
+	operandY = getVarValue(operandY);
 	switch(parts[1][0]){
 		case '+':
 			answer = operandX + operandY;
@@ -203,6 +205,34 @@ void calc(char *arg){
 			printMessage("Unkown Operand\n");
 			break;
 	}
+}
+void set(){
+	int varIdx = variableExists(compoundPaths[0]);
+	if(varIdx == -1){
+		printMessage("Variable not found\n");
+		return;
+	}
+	processDirectory(compoundPaths[1]);
+	char* content = cat(fileName);	
+	restorePath(currentPath);
+	int newValue = 0;
+	if(strLen(content) > 8){
+		printMessage("Desired value exceeds limit\n");
+		return;
+	}
+	int tens = 1;
+	for(int i=strLen(content)-2; i>=0; i--){
+		if(content[i] >= 48 && content[i] < 58){
+			newValue += ((int)content[i]-48) * tens;
+			tens *= 10;
+		} 
+		else {
+			printMessage("Non-numeric value detected\n");
+			return;
+		}
+	}
+	setVarValue(varIdx, newValue);
+	printMessage(" ");
 }
 char* callibrate(int idx, char *target){
 	char parts[2][16] = {{0}};
@@ -319,7 +349,12 @@ void processArgument(char *arg){
 		shutDown();
 	}
 	else if(compare(argv[0], "ls")){
-		ls();
+		if(strLen(argv[1]) == 0)
+			ls();
+		else if(compare(argv[1], "var"))
+			lsVar();
+		else
+			printMessage("Unknown ls command\n");
 	}
 	else if(compare(argv[0], "mkdir")){
 		if(strLen(argv[1]) == 0)
@@ -396,6 +431,16 @@ void processArgument(char *arg){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
 		calc(argv[1]);
+
+	}
+	else if(compare(argv[0], "set")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		processCompoundArgument(argv[1]);
+		if(continueArgument)
+			set();
+	}
+	else if(compare(argv[0], "load")){
 
 	}
 	else if(argv[0][0] == '.' && argv[0][1] == '/'){
