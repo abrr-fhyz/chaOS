@@ -282,7 +282,7 @@ void storeVar(char *var){
 	newVar->value = 0;
 	variables[varCnt++] = newVar;
 	if(varCnt == 64)
-		varCnt = 0;
+		varCnt = 1;
 }
 char* cat(char *fileName){
 	int idx = findFileIndex(fileName);
@@ -318,6 +318,7 @@ void initFileSystem(){
 	pathAppend(root);
 	workingDirectory = root;
 	createProcess("filSys", fs_process);
+	storeVar("ANS");
 	printMessage("\t\t\t\tFile System Boot Up\t\t---\t\t\tCompleted\n");
 }
 

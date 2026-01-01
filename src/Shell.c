@@ -15,7 +15,6 @@ char currentPath[64];
 char fileName[16];
 char tempLabel[16];
 int continueArgument;
-int answer;
 
 
 
@@ -43,9 +42,9 @@ void split(char *arg){
 	}
 }
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\tls var\t\t- list available variables\n\t\t\t\tls label\t- list available labels\n\tcd PATH\t\t\t- change current directory to PATH\n"
+	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\t-> ls var:\tlist available variables\n\tcd PATH\t\t\t- change current directory to PATH\n"
 		"\tmake FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
-		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP (+, -, *, /, %, &, |) on variables VARA and VARB\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
+		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\t\t\t\t- Available OP: +, -, *, /, %, &, |\n\t\t\t\t- Answer stored in ANS Variable\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL\t\t- unconditional jump to LABEL\n\t\t\t\t-> jump LABEL VAR:\tjump to the label LABEL if VAR is non-zero\n"
 		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
 }
 void splitCmd(char *cmd){
@@ -126,6 +125,37 @@ void processCompoundArgument(char *cmd){
 		return;
 	}
 }
+char* callibrate(int idx, char *target){
+	char parts[2][16] = {{0}};
+	for(int i=0; i<16; i++)
+		tempLabel[i] = '\0';
+	int val = 0, cnt = 0;
+	for(int i=0; i<strLen(intructions[idx]); i++){
+		if(intructions[idx][i] == ' '){
+			val = 1;
+			cnt = 0;
+			continue;
+		}
+		parts[val][cnt++] = intructions[idx][i];
+	}
+	if(compare(parts[0], target)){
+		for(int i=0; i<strLen(parts[1]); i++)
+			tempLabel[i] = parts[1][i];
+		return tempLabel;
+	}
+	static char empty[1] = {0};
+	return empty;
+}
+
+
+
+
+
+
+
+
+
+// INTERMEDIARY SHELL FUNCTIONS //
 void cp(){
 	if(compare(compoundPaths[0], compoundPaths[1])){
 		printMessage("Can not move file with same name within same directory.");
@@ -153,6 +183,7 @@ void cp(){
 	printMessage(" ");
 }
 void calc(char *arg){
+	int answer = 0;
 	int n = strLen(arg);
 	char parts[3][16] = {{0}};
 	int val = 0, cnt = 0;
@@ -205,6 +236,7 @@ void calc(char *arg){
 			printMessage("Unkown Operand\n");
 			break;
 	}
+	setVarValue(0, answer);
 }
 void set(){
 	int varIdx = variableExists(compoundPaths[0]);
@@ -234,28 +266,29 @@ void set(){
 	setVarValue(varIdx, newValue);
 	printMessage(" ");
 }
-char* callibrate(int idx, char *target){
-	char parts[2][16] = {{0}};
-	for(int i=0; i<16; i++)
-		tempLabel[i] = '\0';
-	int val = 0, cnt = 0;
-	for(int i=0; i<strLen(intructions[idx]); i++){
-		if(intructions[idx][i] == ' '){
-			val = 1;
-			cnt = 0;
-			continue;
-		}
-		parts[val][cnt++] = intructions[idx][i];
+void load(){
+	int varIdx = variableExists(compoundPaths[1]);
+	if(varIdx == -1){
+		printMessage("Variable not found\n");
+		return;
 	}
-	if(compare(parts[0], target)){
-		for(int i=0; i<strLen(parts[1]); i++)
-			tempLabel[i] = parts[1][i];
-		return tempLabel;
+	int value = getVarValue(varIdx);
+	processDirectory(compoundPaths[0]);
+	int fileIdx = findFileIndex(fileName);
+	if(fileIdx == -1){
+		printMessage("Variable not found\n");
+		restorePath(currentPath);
+		return;
 	}
-	static char empty[1] = {0};
-	return empty;
+	char buffer[1024];
+	snprintf(buffer, sizeof(buffer), "%d", value); 
+	wait(5);
+	logContent(fileIdx, buffer);
+	wait(5);
+	restorePath(currentPath);
+	wait(5);
+	printMessage(" ");
 }
-
 
 
 
@@ -265,7 +298,7 @@ char* callibrate(int idx, char *target){
 
 //RELATED TO SHELL-BASED COMPUTATIONS//
 void exe(char *arg){
-	char labels[64][16];
+	char labels[64][16] = {{0}};
 	int labelLineNumber[64];
 	int labelCnt = 0;
 
@@ -315,8 +348,44 @@ void exe(char *arg){
 				i = labelLineNumber[flag] - 1;
 				continue;
 			}
+			int val = 0, cnt = 0;
+			char parts[2][16] = {{0}};
+			for(int x=5; x<strLen(intructions[i]); x++){
+				if(intructions[i][x] == ' '){
+					val ++;
+					if(val == 2){
+						raiseError(3, 4);
+						return;
+					}
+					cnt = 0;
+					continue;
+				}
+				parts[val][cnt++] = intructions[i][x];
+			}
+			if(val == 0)
+				return;
+			flag = -1;
+			for(int j=0; j<labelCnt; j++){
+				if(compare(parts[0], labels[j])){
+					flag = j;
+					break;
+				}
+			}
+			if(flag == -1)
+				continue;
+			int varIdx = variableExists(parts[1]);
+			if(varIdx == -1){
+				printMessage("Variable does not exist\n");
+				return;
+			}
+			int condition = getVarValue(varIdx);
+			if(condition){
+				i = labelLineNumber[flag] - 1;
+				continue;
+			}
 		}
 		processArgument(intructions[i]);
+		wait(64);
 	}
 }
 
@@ -426,6 +495,8 @@ void processArgument(char *arg){
 	else if(compare(argv[0], "label") || compare(argv[0], "jump")){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
+		if(contains(argv[1], ' ') != -1 && compare(argv[0], "label") == 1)
+			printMessage("Illegal Character in name: ' '\n");
 	}
 	else if(compare(argv[0], "calc")){
 		if(strLen(argv[1]) == 0)
@@ -441,7 +512,11 @@ void processArgument(char *arg){
 			set();
 	}
 	else if(compare(argv[0], "load")){
-
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		processCompoundArgument(argv[1]);
+		if(continueArgument)
+			load();
 	}
 	else if(argv[0][0] == '.' && argv[0][1] == '/'){
 		exe(argv[0]);
