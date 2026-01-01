@@ -4,24 +4,32 @@
 #include "../lib/Process.h"
 #include "../lib/File.h"
 
+
+// SHELL MEMORY ARRAYS //
 char argv[2][1024];
 char cdArray[16][16];
 char pathArray[16][16];
 char compoundPaths[2][64];
 char intructions[32][64];
-
 char currentPath[64];
 char fileName[16];
-
+char tempLabel[16];
 int continueArgument;
+int answer;
 
 
+
+
+
+
+
+
+
+// UTIL FUNCTIONS //
 void split(char *arg){
-	for(int i=0; i<2; i++){
-		for(int j=0; j<1024; j++){
+	for(int i=0; i<2; i++)
+		for(int j=0; j<1024; j++)
 			argv[i][j] = '\0';
-		}
-	}
 	int cnt = 0, idx = 0, flag = 0, len = 0;
 	while(cnt < 1023){
 		if(arg[cnt] == ' ' && flag == 0){
@@ -34,19 +42,12 @@ void split(char *arg){
 		cnt ++;
 	}
 }
-
-void initShell(){
-	createProcess("shell", shell_process);
-	printMessage("\t\t\t\tShell Boot Up\t\t\t---\t\t\tCompleted\n");
-}
-
 void showHelp(){
 	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\tls var\t\t- list available variables\n\t\t\t\tls label\t- list available labels\n\tcd PATH\t\t\t- change current directory to PATH\n"
-		"\ttouch FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
-		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\tstr VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
+		"\tmake FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
+		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP (+, -, *, /, %, &, |) on variables VARA and VARB\n\tstr VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL VAR\t\t- jump to the label LABEL if VAR is non-zero\n"
 		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
 }
-
 void splitCmd(char *cmd){
 	for(int i=0; i<16; i++)
 		for(int j=0; j<16; j++)
@@ -63,7 +64,6 @@ void splitCmd(char *cmd){
 		cnt ++;
 	}
 }
-
 void cd(char *cmd){
 	splitCmd(cmd);
 	for(int i=0; i<16; i++){
@@ -76,7 +76,6 @@ void cd(char *cmd){
 		}
 	}
 }
-
 void processDirectory(char *cmd){
 	int flag = contains(cmd, '\\');
 	char *ptr = getPath();
@@ -87,26 +86,21 @@ void processDirectory(char *cmd){
 	for(int i=0; i<16; i++)
 		fileName[i] = '\0';
 	if(flag == -1){
-		for(int i=0; i<strLen(cmd); i++){
+		for(int i=0; i<strLen(cmd); i++)
 			fileName[i] = cmd[i];
-		}
 		return;
 	}
-	for(int i=flag+1; i<strLen(cmd); i++){
+	for(int i=flag+1; i<strLen(cmd); i++)
 		fileName[i - (flag+1)] = cmd[i];
-	}
-	for(int i=flag; i<strLen(cmd); i++){
+	for(int i=flag; i<strLen(cmd); i++)
 		cmd[i] = '\0';
-	}
 	printMessage(" ");
 	cd(cmd);
 }
-
 void restorePath(char *path){
 	cd("..\\..\\..\\..\\..\\..\\..\\..\\..");
 	cd(path);
 }
-
 void processCompoundArgument(char *cmd){
 	for(int i=0; i<64; i++)
 		for(int j=0; j<64; j++)
@@ -132,21 +126,21 @@ void processCompoundArgument(char *cmd){
 		return;
 	}
 }
-
 void cp(){
 	if(compare(compoundPaths[0], compoundPaths[1])){
 		printMessage("Can not move file with same name within same directory.");
 		return;
 	}
 	processDirectory(compoundPaths[0]);
-	char *ptr = getContent(fileName);
+	int fileidx = findFileIndex(fileName);
 	char content[1024];
 	for(int i=0; i<1024; i++)
 		content[i] = '\0';
-	if(ptr == NULL){
+	if(fileidx == -1){
 		printMessage("Target File Not Found");
 		return;
 	}
+	char *ptr = getContent(fileidx);
 	for(int i=0; i<strLen(ptr); i++)
 		content[i] = ptr[i];
 	restorePath(currentPath);
@@ -158,31 +152,153 @@ void cp(){
 	restorePath(currentPath);
 	printMessage(" ");
 }
+int getValue(char *var){
+	int val = findVariable(var);
+	return val;
+}
+void calc(char *arg){
+	int n = strLen(arg);
+	char parts[3][16] = {{0}};
+	int val = 0, cnt = 0;
+	for(int i=0; i<n; i++){
+		if(arg[i] == ' '){
+			val ++;
+			cnt = 0;
+			continue;
+		}
+		parts[val][cnt++] = arg[i];
+	}
+	if(val != 2){
+		raiseError(4, val+2);
+		return;
+	}
+	int operandX = getValue(parts[0]);
+	int operandY = getValue(parts[2]);
+	switch(parts[1][0]){
+		case '+':
+			answer = operandX + operandY;
+			break;
+		case '-':
+			answer = operandX - operandY;
+			break;
+		case '*':
+			answer = operandX * operandY;
+			break;
+		case '&':
+			answer = operandX & operandY;
+			break;
+		case '|':
+			answer = operandX | operandY;
+			break;
+		case '/':
+			if (operandY != 0)
+				answer = operandX / operandY;
+			else
+				printMessage("Can't divide by zero\n");
+			break;
+		case '%':
+			answer = operandX % operandY;
+			break;
+		default:
+			printMessage("Unkown Operand\n");
+			break;
+	}
+}
+char* callibrate(int idx, char *target){
+	char parts[2][16] = {{0}};
+	for(int i=0; i<16; i++)
+		tempLabel[i] = '\0';
+	int val = 0, cnt = 0;
+	for(int i=0; i<strLen(intructions[idx]); i++){
+		if(intructions[idx][i] == ' '){
+			val = 1;
+			cnt = 0;
+			continue;
+		}
+		parts[val][cnt++] = intructions[idx][i];
+	}
+	if(compare(parts[0], target)){
+		for(int i=0; i<strLen(parts[1]); i++)
+			tempLabel[i] = parts[1][i];
+		return tempLabel;
+	}
+	static char empty[1] = {0};
+	return empty;
+}
 
+
+
+
+
+
+
+
+//RELATED TO SHELL-BASED COMPUTATIONS//
 void exe(char *arg){
+	char labels[64][16];
+	int labelLineNumber[64];
+	int labelCnt = 0;
+
 	int n = strLen(arg);
 	for(int i=2; i<n; i++)
 		arg[i-2] = arg[i];
 	arg[n-2] = '\0';
-	char *ptr = getContent(fileName);
-	if(ptr == NULL){
+	int idx = findFileIndex(arg);
+	if(idx == -1){
 		printMessage("Executable File Not Found");
 		return;
 	}
+	char *ptr = getContent(idx);
+	for(int i=0; i<32; i++)
+		for(int j=0; j<64; j++)
+		intructions[i][j] = '\0';
+
 	int instr = 0, cnt = 0;
 	for(int i=0; i<strLen(ptr); i++){
 		if(ptr[i] == '\n'){
+			char *newLabel = callibrate(instr, "label");
+			if(newLabel[0] != '\0'){
+				for(int j=0; j<strLen(newLabel); j++)
+					labels[labelCnt][j] = newLabel[j];
+				labelLineNumber[labelCnt] = instr;
+				labelCnt++;
+				if(labelCnt == 64)
+					labelCnt = 0;
+			}
 			instr ++;
 			cnt = 0;
 			continue;
 		}
 		intructions[instr][cnt++] = ptr[i];
 	}
-	for(int i=0; i<instr+1; i++){
+	for(int i=0; i<instr; i++){
+		char *jumpInstr = callibrate(i, "jump");
+		if(jumpInstr[0] != '\0'){
+			int flag = -1;
+			for(int j=0; j<labelCnt; j++){
+				if(compare(jumpInstr, labels[j])){
+					flag = j;
+					break;
+				}
+			}
+			if(flag != -1){
+				i = labelLineNumber[flag] - 1;
+				continue;
+			}
+		}
 		processArgument(intructions[i]);
 	}
 }
 
+
+
+
+
+
+
+
+
+// MAIN ARGUMENT PARSER //
 void processArgument(char *arg){
 	split(arg);
 	if(compare(argv[0], "echo")){
@@ -215,7 +331,7 @@ void processArgument(char *arg){
 			raiseError(2, 1);
 		cd(argv[1]);
 	}
-	else if(compare(argv[0], "touch")){
+	else if(compare(argv[0], "make")){
 		if(strLen(argv[1]) == 0)
 			raiseError(2, 1);
 		touch(argv[1]);
@@ -260,11 +376,47 @@ void processArgument(char *arg){
 		del(fileName);
 		restorePath(currentPath);
 	}
+	else if(compare(argv[0], "deldir")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		processDirectory(argv[1]);
+		deldir(fileName);
+		restorePath(currentPath);
+	}
+	else if(compare(argv[0], "var")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		storeVar(argv[1]);
+	}
+	else if(compare(argv[0], "label") || compare(argv[0], "jump")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+	}
+	else if(compare(argv[0], "calc")){
+		if(strLen(argv[1]) == 0)
+			raiseError(2, 1);
+		calc(argv[1]);
+
+	}
 	else if(argv[0][0] == '.' && argv[0][1] == '/'){
 		exe(argv[0]);
 	}
 	else{
-		printMessage("Unrecognised Command. Try 'help' for options.");
+		printMessage("Unrecognised Command. Try 'help' for options\n");
 	}
 	wait(2);
+}
+
+
+
+
+
+
+
+
+
+// SHELL INITIALIZATION //
+void initShell(){
+	createProcess("shell", shell_process);
+	printMessage("\t\t\t\tShell Boot Up\t\t\t---\t\t\tCompleted\n");
 }
