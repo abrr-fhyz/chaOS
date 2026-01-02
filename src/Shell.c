@@ -15,6 +15,7 @@ char currentPath[64];
 char fileName[16];
 char tempLabel[16];
 int continueArgument;
+int copySuccess;
 
 
 
@@ -44,8 +45,8 @@ void split(char *arg){
 void showHelp(){
 	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\t-> ls var:\tlist available variables\n\tcd PATH\t\t\t- change current directory to PATH\n"
 		"\tmake FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
-		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\t\t\t\t- Available OP: +, -, *, /, %, &, |\n\t\t\t\t- Answer stored in ANS Variable\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL\t\t- unconditional jump to LABEL\n\t\t\t\t-> jump LABEL VAR:\tjump to the label LABEL if VAR is non-zero\n"
-		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
+		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\t\t\t\t- Available OP: +, -, *, /, %, &, |, ^, =, !\n\t\t\t\t- Answer stored in ANS Variable\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL\t\t- unconditional jump to LABEL\n\t\t\t\t-> jump LABEL VAR:\tjump to the label LABEL if VAR is non-zero\n"
+		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\tread PATH i\t\t- loads the ASCII value of the i-th character in the file at the end of PATH\n\twrite PATH i\t\t- writes the value of the ANS variable as an ASCII character at the i-th place of file at PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
 }
 void splitCmd(char *cmd){
 	for(int i=0; i<16; i++)
@@ -146,6 +147,26 @@ char* callibrate(int idx, char *target){
 	static char empty[1] = {0};
 	return empty;
 }
+int convertToInt(char *str){
+	int value = 0;
+	if(strLen(str) > 11 || (strLen(str) == 11 && str[0] > 49)){
+		//max value = 1,999,999,999
+		printMessage("Desired value exceeds limit\n");
+		return -1;
+	}
+	int tens = 1;
+	for(int i=strLen(str)-2; i>=0; i--){
+		if(str[i] >= 48 && str[i] < 58){
+			value += ((int)str[i]-48) * tens;
+			tens *= 10;
+		} 
+		else {
+			printMessage("Non-numeric value detected\n");
+			return -1;
+		}
+	}
+	return value;
+}
 
 
 
@@ -176,10 +197,16 @@ void cp(){
 	restorePath(currentPath);
 	wait(3);
 	processDirectory(compoundPaths[1]);
+	if(!determineEligibility(fileName, 0)){
+		restorePath(currentPath);
+		copySuccess = 0;
+		return;
+	}
 	touch(fileName);
 	int idx = findFileIndex(fileName);
 	logContent(idx, content);
 	restorePath(currentPath);
+	copySuccess = 1;
 	printMessage(" ");
 }
 void calc(char *arg){
@@ -199,14 +226,14 @@ void calc(char *arg){
 		raiseError(4, val+2);
 		return;
 	}
-	int operandX = variableExists(parts[0]);
-	int operandY = variableExists(parts[2]);
-	if(operandY == -1 || operandX == -1){
+	int operandXIdx = variableExists(parts[0]);
+	int operandYIdx = variableExists(parts[2]);
+	if(operandYIdx == -1 || operandXIdx == -1){
 		printMessage("One or both of the variables do not exist\n");
 		return;
 	}
-	operandX = getVarValue(operandX);
-	operandY = getVarValue(operandY);
+	int operandX = getVarValue(operandXIdx);
+	int operandY = getVarValue(operandYIdx);
 	switch(parts[1][0]){
 		case '+':
 			answer = operandX + operandY;
@@ -232,6 +259,18 @@ void calc(char *arg){
 		case '%':
 			answer = operandX % operandY;
 			break;
+		case '^':
+			answer = operandX ^ operandY;
+			break;
+		case '=':
+			answer = operandX;
+			setVarValue(operandYIdx, operandX);
+			break;
+		case '!':
+			answer = !operandY;
+			setVarValue(operandXIdx, !operandX);
+			setVarValue(operandYIdx, !operandY);
+			break;
 		default:
 			printMessage("Unkown Operand\n");
 			break;
@@ -247,22 +286,7 @@ void set(){
 	processDirectory(compoundPaths[1]);
 	char* content = cat(fileName);	
 	restorePath(currentPath);
-	int newValue = 0;
-	if(strLen(content) > 8){
-		printMessage("Desired value exceeds limit\n");
-		return;
-	}
-	int tens = 1;
-	for(int i=strLen(content)-2; i>=0; i--){
-		if(content[i] >= 48 && content[i] < 58){
-			newValue += ((int)content[i]-48) * tens;
-			tens *= 10;
-		} 
-		else {
-			printMessage("Non-numeric value detected\n");
-			return;
-		}
-	}
+	int newValue = convertToInt(content);
 	setVarValue(varIdx, newValue);
 	printMessage(" ");
 }
@@ -463,7 +487,8 @@ void processArgument(char *arg){
 		processCompoundArgument(argv[1]);
 		if(continueArgument){
 			cp();
-			del(compoundPaths[0]);
+			if(copySuccess)
+				del(compoundPaths[0]);
 		}
 	}
 	else if(compare(argv[0], "cp")){
@@ -500,23 +525,53 @@ void processArgument(char *arg){
 	}
 	else if(compare(argv[0], "calc")){
 		if(strLen(argv[1]) == 0)
-			raiseError(2, 1);
+			raiseError(4, 1);
 		calc(argv[1]);
 
 	}
 	else if(compare(argv[0], "set")){
 		if(strLen(argv[1]) == 0)
-			raiseError(2, 1);
+			raiseError(3, 1);
 		processCompoundArgument(argv[1]);
 		if(continueArgument)
 			set();
 	}
 	else if(compare(argv[0], "load")){
 		if(strLen(argv[1]) == 0)
-			raiseError(2, 1);
+			raiseError(3, 1);
 		processCompoundArgument(argv[1]);
 		if(continueArgument)
 			load();
+	}
+	else if(compare(argv[0], "read")){
+		if(strLen(argv[1]) == 0)
+			raiseError(3, 1);
+		processCompoundArgument(argv[1]);
+		int n = strLen(compoundPaths[1]);
+		compoundPaths[1][n] = '\n';
+		processDirectory(compoundPaths[0]);
+		int pos = convertToInt(compoundPaths[1]);
+		if(pos != -1){
+			char x = read(fileName, pos);
+			setVarValue(0, (int)x);
+		}
+		restorePath(currentPath);
+		printMessage(" ");
+	}
+	else if(compare(argv[0], "write")){
+		if(strLen(argv[1]) == 0)
+			raiseError(3, 1);
+		processCompoundArgument(argv[1]);
+		int n = strLen(compoundPaths[1]);
+		compoundPaths[1][n] = '\n';
+		processDirectory(compoundPaths[0]);
+		int pos = convertToInt(compoundPaths[1]);
+		if(pos != -1){
+			char x = (char)getVarValue(0);
+			write(fileName, pos, x);
+		}
+		restorePath(currentPath);
+		printMessage(" ");
 	}
 	else if(argv[0][0] == '.' && argv[0][1] == '/'){
 		exe(argv[0]);

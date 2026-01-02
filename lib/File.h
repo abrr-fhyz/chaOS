@@ -10,6 +10,7 @@ int variableExists(char *name);
 int getVarValue(int idx);
 void setVarValue(int idx, int val);
 void logContent(int idx, char *content);
+int determineEligibility(char *name, int type);
 char* getContent(int fileIdx);
 char* getPath();
 
@@ -24,7 +25,8 @@ void deldir(char *dirName);
 void edit(char *fileName);
 void storeVar(char *var);
 char* cat(char *fileName);
-
+char read(char *fileName, int pos);
+void write(char *fileName, int pos, char ch);
 
 
 #endif

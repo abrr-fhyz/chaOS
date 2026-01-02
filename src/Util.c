@@ -132,7 +132,7 @@ void waitForInput(){
 
 void fileEdit(int fileIdx){
 	printLast();
-	char content[1024];
+	char content[1024] = {0};
 	int cnt = 0;
 	char c, prev = '\0';
 	while(scanf("%c", &c) == 1){

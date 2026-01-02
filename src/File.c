@@ -135,8 +135,28 @@ int getVarValue(int idx){
 void setVarValue(int idx, int val){
 	variables[idx]->value = val;
 }
-int determineEligibility(){
-
+int determineEligibility(char *name, int type){
+	// 1 means elligible, 0 means not
+	// type = 0 is files, type = 1 is directories
+	if(type == 0){
+		int idx = findFileIndex(name);
+		if(idx == -1)
+			return 1;
+		else 
+			return 0;
+	} else {
+		int flag = -1;
+		for(int i=0; i<workingDirectory->subDirectoriesNum; i++){
+			if(compare(workingDirectory->subDirectories[i]->directoryName, name)){
+				flag = 1;
+				break;
+			}
+		}
+		if(flag == -1)
+			return 1;
+		else
+			return 0;
+	}
 }
 char* getPath(){
 	return pathPtr;
@@ -162,6 +182,10 @@ void mkdir(char *dirName){
 		return;
 	if(contains(dirName, '\\') != -1){
 		printMessage("Illegal Character in name: \\\n");
+		return;
+	}
+	if(!determineEligibility(dirName, 1)){
+		printMessage("Directory already exists\n");
 		return;
 	}
 	Directory *newDir = (Directory*)malloc(sizeof(Directory));
@@ -218,6 +242,10 @@ void touch(char *fileName){
 		printMessage("Illegal Character in name: \\\n");
 		return;
 	}
+	if(!determineEligibility(fileName, 0)){
+		printMessage("File already exists\n");
+		return;
+	}
 	File *newFile = (File*)malloc(sizeof(File));
 	setFileName(newFile, fileName);
 	newFile->fileSize = 0;
@@ -262,7 +290,6 @@ void edit(char *fileName){
 		printMessage("Not Found");
 		return;
 	}
-	cat(fileName);
 	printMessage("\n$Enter New Content: ");
 	fileEdit(idx);
 }
@@ -297,6 +324,27 @@ char* cat(char *fileName){
 		content[2] = 'l';
 	}
 	return content;
+}
+char read(char *fileName, int pos){
+	int idx = findFileIndex(fileName);
+	if(idx == -1){
+		printMessage("Not Found");
+		return '#';
+	}
+	char *content = getContent(idx);
+	if(pos >= strLen(content)){
+		printMessage("nil");
+		return '#';
+	}
+	return content[pos];
+}
+void write(char *fileName, int pos, char ch){
+	int idx = findFileIndex(fileName);
+	if(idx == -1){
+		printMessage("Not Found");
+		return;
+	}
+	workingDirectory->files[idx]->fileContent[pos] = ch;
 }
 
 
