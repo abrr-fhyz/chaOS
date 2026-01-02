@@ -7,7 +7,7 @@
 
 # Available Console Commands:
 ```
-		help                    - show recognised commands
+	help                    - show recognised commands
         echo TEXT               - print TEXT as a string
         ps                      - list processes
         clear                   - clear screen, also works as "cls"
@@ -15,6 +15,7 @@
         ls                      - list available directories and files
                                 -> ls var:      list available variables
         cd PATH                 - change current directory to PATH
+        mem                     - show current memory status
         make FILE               - create an empty file with name FILE
         edit PATH               - edit the file present at the end of PATH, press enter twice to save
         cat PATH                - show the contents of the file at the end of PATH
@@ -23,7 +24,7 @@
         var VARIABLE            - initialize new variable with name VARIABLE
         label LABEL             - initialize new label with name LABEL
         calc VARA OP VARB       - perform arithmetic or logical operation OP on variables VARA and VARB
-                                - Available OP: +, -, *, /, %, &, |
+                                - Available OP: +, -, *, /, %, &, |, ^, =, !
                                 - Answer stored in ANS Variable
         set VAR FILE            - write the value of variable VAR into the file FILE
         load FILE VAR           - write the value of file FILE into the variable VAR
@@ -31,6 +32,8 @@
                                 -> jump LABEL VAR:      jump to the label LABEL if VAR is non-zero
         del PATH                - delete the file at the end of PATH
         deldir PATH             - delete the directory at the end of PATH
+        read PATH i             - loads the ASCII value of the i-th character in the file at the end of PATH
+        write PATH i            - writes the value of the ANS variable as an ASCII character at the i-th place of file at PATH
         ./FILE                  - executes console commands present in FILE in sequential order
         exit                    - exit interface
 ```
