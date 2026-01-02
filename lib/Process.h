@@ -15,7 +15,7 @@ typedef enum{
 typedef struct Process Process;
 typedef void (*processFunc)(Process *);
 void setPID(Process *p, int x);
-Process* setUpProcess(const char *name, processFunc entry);
+Process* setUpProcess(char *name, processFunc entry);
 void getProcessData(Process *p);
 
 void init_process(Process *p);

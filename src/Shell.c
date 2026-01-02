@@ -3,19 +3,7 @@
 #include "../lib/Util.h"
 #include "../lib/Process.h"
 #include "../lib/File.h"
-
-
-// SHELL MEMORY ARRAYS //
-char argv[2][1024];
-char cdArray[16][16];
-char pathArray[16][16];
-char compoundPaths[2][64];
-char intructions[32][64];
-char currentPath[64];
-char fileName[16];
-char tempLabel[16];
-int continueArgument;
-int copySuccess;
+#include "../lib/Memory.h"
 
 
 
@@ -28,10 +16,10 @@ int copySuccess;
 // UTIL FUNCTIONS //
 void split(char *arg){
 	for(int i=0; i<2; i++)
-		for(int j=0; j<1024; j++)
+		for(int j=0; j<4096; j++)
 			argv[i][j] = '\0';
 	int cnt = 0, idx = 0, flag = 0, len = 0;
-	while(cnt < 1023){
+	while(cnt < 4095){
 		if(arg[cnt] == ' ' && flag == 0){
 			idx ++;
 			flag = 1;
@@ -98,7 +86,7 @@ void processDirectory(char *cmd){
 	cd(cmd);
 }
 void restorePath(char *path){
-	cd("..\\..\\..\\..\\..\\..\\..\\..\\..");
+	cd("..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..");
 	cd(path);
 }
 void processCompoundArgument(char *cmd){
@@ -160,6 +148,10 @@ int convertToInt(char *str){
 			value += ((int)str[i]-48) * tens;
 			tens *= 10;
 		} 
+		else if(i == 0 && str[i] == '-'){
+			value *= -1;
+			break;
+		}
 		else {
 			printMessage("Non-numeric value detected\n");
 			return -1;
@@ -184,8 +176,8 @@ void cp(){
 	}
 	processDirectory(compoundPaths[0]);
 	int fileidx = findFileIndex(fileName);
-	char content[1024];
-	for(int i=0; i<1024; i++)
+	char content[4096];
+	for(int i=0; i<4096; i++)
 		content[i] = '\0';
 	if(fileidx == -1){
 		printMessage("Target File Not Found");
@@ -304,7 +296,7 @@ void load(){
 		restorePath(currentPath);
 		return;
 	}
-	char buffer[1024];
+	char buffer[10];
 	snprintf(buffer, sizeof(buffer), "%d", value); 
 	wait(5);
 	logContent(fileIdx, buffer);
@@ -322,9 +314,13 @@ void load(){
 
 //RELATED TO SHELL-BASED COMPUTATIONS//
 void exe(char *arg){
-	char labels[64][16] = {{0}};
-	int labelLineNumber[64];
-	int labelCnt = 0;
+	labelCnt = 0;
+	for(int i=0; i<64; i++)
+		for(int j=0; j<16; j++)
+			labels[i][j] = '\0';
+	for(int i=0; i<64; i++)
+		for(int j=0; j<64; j++)
+			intructions[i][j] = '\0';
 
 	int n = strLen(arg);
 	for(int i=2; i<n; i++)
@@ -336,10 +332,6 @@ void exe(char *arg){
 		return;
 	}
 	char *ptr = getContent(idx);
-	for(int i=0; i<32; i++)
-		for(int j=0; j<64; j++)
-		intructions[i][j] = '\0';
-
 	int instr = 0, cnt = 0;
 	for(int i=0; i<strLen(ptr); i++){
 		if(ptr[i] == '\n'){
@@ -428,6 +420,9 @@ void processArgument(char *arg){
 		int idx = strLen(argv[1]);
 		argv[1][idx] = '\n';
 		printMessage(argv[1]);
+	}
+	else if(compare(argv[0], "mem")){
+		mem();
 	}
 	else if(compare(argv[0], "ps")){
 		listProcesses();

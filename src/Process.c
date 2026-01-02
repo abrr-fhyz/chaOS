@@ -2,14 +2,7 @@
 #include "../lib/Util.h"
 #include "../lib/Shell.h"
 #include "../lib/File.h"
-
-struct Process{
-    int pid;
-    char pName[8];
-    processFunc entry;
-    processState state;
-    int step;
-};
+#include "../lib/Memory.h"
 
 void setState(Process *p, processState s){
     p->state = s;
@@ -27,12 +20,13 @@ void setPID(Process *p, int x){
     p->pid = x;
 }
 
-void setpName(Process *p, const char *name){
-    strncpy(p->pName, name, sizeof(p->pName) - 1);
-    p->pName[sizeof(p->pName) - 1] = '\0';
+void setpName(Process *p, char *name){
+    for(int i=0; i<strLen(name); i++)
+        p->pName[i] = name[i];
+    p->pName[strLen(name)] = '\0';
 }
 
-Process* setUpProcess(const char *name, processFunc entry){
+Process* setUpProcess(char *name, processFunc entry){
     Process *p = malloc(sizeof *p);
     setpName(p, name);
     setState(p, READY);

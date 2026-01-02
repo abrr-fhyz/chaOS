@@ -2,48 +2,7 @@
 #include "../lib/Process.h"
 #include "../lib/Util.h"
 #include "../lib/Handler.h"
-
-
-
-
-
-
-
-
-
-// REQUIRED STRUCT DEFINITIONS //
-typedef struct Directory Directory; 
-typedef struct{
-	char fileName[16];
-	char fileContent[1024];
-	int fileSize;
-}File;
-typedef struct Directory{
-	char directoryName[16];
-	int subDirectoriesNum;
-	int fileNum;
-	File* files[64];
-	Directory* parentDirectory;
-	Directory* subDirectories[64];
-}Directory;
-typedef struct{
-	char variableName[16];
-	int value;
-}Variable;
-
-
-
-
-
-
-
-
-
-// REQUIRED ARRAYS AND CONSTANTS//
-char pathPtr[256];
-int varCnt;
-Directory *workingDirectory;
-Variable* variables[64];
+#include "../lib/Memory.h"
 
 
 
@@ -107,6 +66,7 @@ void logContent(int idx, char *content){
 		workingDirectory->files[idx]->fileContent[i] = '\0';
 	for(int i=0; i<n; i++)
 		workingDirectory->files[idx]->fileContent[i] = content[i];
+	updateFileSize(workingDirectory->files[idx]->fileSize, strLen(content) * 8);
 	workingDirectory->files[idx]->fileSize = strLen(content) * 8;
 }
 int findFileIndex(char *fileName){
@@ -188,7 +148,7 @@ void mkdir(char *dirName){
 		printMessage("Directory already exists\n");
 		return;
 	}
-	Directory *newDir = (Directory*)malloc(sizeof(Directory));
+	Directory *newDir = generateDirectory();
 	setDirectoryName(newDir, dirName);
 	newDir->parentDirectory = workingDirectory;
 	newDir->subDirectoriesNum = 0;
@@ -246,7 +206,7 @@ void touch(char *fileName){
 		printMessage("File already exists\n");
 		return;
 	}
-	File *newFile = (File*)malloc(sizeof(File));
+	File *newFile = generateFile();
 	setFileName(newFile, fileName);
 	newFile->fileSize = 0;
 	for(int i=0; i<1024; i++)
@@ -260,6 +220,7 @@ void del(char *fileName){
 		printMessage("Not Found");
 		return;
 	}
+	removeFileSize(workingDirectory->files[flag]->fileSize);
 	for(int i=flag+1; i<workingDirectory->fileNum; i++)
 		workingDirectory->files[i-1] = workingDirectory->files[i];
 	workingDirectory->fileNum --;
@@ -278,6 +239,7 @@ void deldir(char *dirName){
 		printMessage("Directory Not Found");
 		return;
 	}
+	removeDirectorySize(workingDirectory->subDirectories[flag]);
 	for(int i=flag+1; i<workingDirectory->subDirectoriesNum; i++)
 		workingDirectory->subDirectories[i-1] = workingDirectory->subDirectories[i];
 	workingDirectory->subDirectoriesNum --;
@@ -302,7 +264,7 @@ void storeVar(char *var){
 	}
 	if(strLen(var) == 0 || strLen(var) > 16)
 		return;
-	Variable *newVar = (Variable*)malloc(sizeof(Variable));
+	Variable *newVar = generateVariable();
 	for(int i=0; i<strLen(var); i++)
 		newVar->variableName[i] = var[i];
 	newVar->variableName[strLen(var)] = '\0';

@@ -1,10 +1,11 @@
 #include "../lib/Handler.h"
 #include "../lib/Util.h"
 #include "../lib/Scheduler.h"
+#include "../lib/Memory.h"
 
 struct Handler{
     int cnt;
-    Process* processList[1024];
+    Process* processList[128];
 };
 
 void initCounter(){
@@ -16,6 +17,7 @@ void initHandler(){
     processHandler = h;
     initCounter();
     schedulerInit();
+    initMem();
 }
 
 void incrementCounter(){
@@ -26,7 +28,7 @@ int getCounter(){
     return processHandler->cnt;
 }
 
-void createProcess(const char *name, processFunc entry){
+void createProcess(char *name, processFunc entry){
     Process *p = setUpProcess(name, entry);
     int pid = getCounter();
     setPID(p, pid);

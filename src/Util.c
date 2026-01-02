@@ -1,10 +1,7 @@
 #include "../lib/Util.h"
 #include "../lib/Shell.h"
 #include "../lib/File.h"
-
-char outputBuffer[1024][1024];
-int outputLoaded;
-int outputPrinted;
+#include "../lib/Memory.h"
 
 void initOutput(){
    	createProcess("printf", output_process);
@@ -14,7 +11,7 @@ void initOutput(){
 }
 
 void raiseError(int x, int y){
-	char buffer[1024];
+	clearBuffer();
 	snprintf(buffer, sizeof(buffer), "Incorrect number of arguments: Expected %d, Found %d\n", x, y);
 	printMessage(buffer);
 }
@@ -81,19 +78,19 @@ void printMessage(const char *msg){
 	}
 	outputBuffer[outputLoaded][i] = '\0';
 	outputLoaded++;
-	if(outputLoaded == 1024){
+	if(outputLoaded == 64){
 		outputLoaded = 0;
 	}
 }
 
 void printLs(const char* type, const char* size, const char* name){
-	char buffer[1024];
+	clearBuffer();
 	snprintf(buffer, sizeof(buffer), "%s\t\t%s\t\t%s\n", type, size, name);
 	printMessage(buffer);
 }
 
 void printProcess(const char* pName, int id, int step, const char* currentState){
-	char buffer[1024];
+	clearBuffer();
 	snprintf(buffer, sizeof(buffer), "Process: %s\t\t|| PID: %d\t\t|| Steps: %d\t\t|| %s\n", pName, id, step, currentState);
 	printMessage(buffer);
 }
@@ -104,7 +101,7 @@ void printNext(){
 	}
 	printf("%s", outputBuffer[outputPrinted]);
 	outputPrinted++;
-	if(outputPrinted == 1024){
+	if(outputPrinted == 64){
 		outputPrinted = 0;
 	}
 }
@@ -117,11 +114,11 @@ void printLast(){
 
 void waitForInput(){
 	char *path = getPath();
-	char buffer[1024];
+	clearBuffer();
 	snprintf(buffer, sizeof(buffer), "\n$%s> ", path);
 	printMessage(buffer);
 	printLast();
-	char arg[1024] = "";
+	char arg[4096] = "";
 	int cnt = 0;
 	char c;
 	while(scanf("%c", &c) == 1 && c != '\n'){
@@ -132,15 +129,14 @@ void waitForInput(){
 
 void fileEdit(int fileIdx){
 	printLast();
-	char content[1024] = {0};
+	clearBuffer();
 	int cnt = 0;
 	char c, prev = '\0';
 	while(scanf("%c", &c) == 1){
-		if(prev != '\0' && prev == '\n' && c == '\n'){
+		if(prev != '\0' && prev == '\n' && c == '\n')
 			break;
-		}
-		content[cnt++] = c;
+		buffer[cnt++] = c;
 		prev = c;
 	}
-	logContent(fileIdx, content);
+	logContent(fileIdx, buffer);
 }

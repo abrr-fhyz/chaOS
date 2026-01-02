@@ -1,4 +1,5 @@
 #include "../lib/Scheduler.h"
+#include "../lib/Memory.h"
 
 void schedulerInit(){
 	timeSteps = 0;
@@ -13,7 +14,7 @@ int getTime(){
 	return timeSteps;
 }
 
-void scheduleProcesses(Process* processList[1024], int n){
+void scheduleProcesses(Process* processList[128], int n){
 	Process *prevProcess = processList[target];
 	if(getState(prevProcess) != TERMINATED)
 		setState(prevProcess, READY);
@@ -22,7 +23,7 @@ void scheduleProcesses(Process* processList[1024], int n){
 	setState(newProcess, RUNNING);
 }
 
-void runCurrentProcess(Process* processList[1024]){
+void runCurrentProcess(Process* processList[128]){
 	Process *currentProcess = processList[target];
 	executeProcess(currentProcess);
 }
