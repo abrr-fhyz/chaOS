@@ -43,7 +43,7 @@ void split(char *arg){
 	}
 }
 void showHelp(){
-	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\t-> ls var:\tlist available variables\n\tcd PATH\t\t\t- change current directory to PATH\n"
+	printMessage("Recognised commands:\n\thelp\t\t\t- show recognised commands\n\techo TEXT\t\t- print TEXT as a string\n\techovar VAR\t\t- print value of VAR as a string\n\tps\t\t\t- list processes\n\tclear\t\t\t- clear screen, also works as \"cls\"\n\tmkdir DIR\t\t- make new directory DIR\n\tls\t\t\t- list available directories and files\n\t\t\t\t-> ls var:\tlist available variables\n\tcd PATH\t\t\t- change current directory to PATH\n"
 		"\tmake FILE\t\t- create an empty file with name FILE\n\tedit PATH\t\t- edit the file present at the end of PATH, press enter twice to save\n\tcat PATH\t\t- show the contents of the file at the end of PATH\n\tmv PATHA PATHB\t\t- move a given file from PATHA to PATHB\n\tcp PATHA PATHB\t\t- copy file from PATHA to PATHB\n"
 		"\tvar VARIABLE\t\t- initialize new variable with name VARIABLE\n\tlabel LABEL\t\t- initialize new label with name LABEL\n\tcalc VARA OP VARB\t- perform arithmetic or logical operation OP on variables VARA and VARB\n\t\t\t\t- Available OP: +, -, *, /, %, &, |, ^, =, !\n\t\t\t\t- Answer stored in ANS Variable\n\tset VAR FILE\t\t- write the value of variable VAR into the file FILE\n\tload FILE VAR\t\t- write the value of file FILE into the variable VAR\n\tjump LABEL\t\t- unconditional jump to LABEL\n\t\t\t\t-> jump LABEL VAR:\tjump to the label LABEL if VAR is non-zero\n"
 		"\tdel PATH\t\t- delete the file at the end of PATH\n\tdeldir PATH\t\t- delete the directory at the end of PATH\n\tread PATH i\t\t- loads the ASCII value of the i-th character in the file at the end of PATH\n\twrite PATH i\t\t- writes the value of the ANS variable as an ASCII character at the i-th place of file at PATH\n\t./FILE\t\t\t- executes console commands present in FILE in sequential order\n\texit\t\t\t- exit interface\n");
@@ -313,6 +313,17 @@ void load(){
 	wait(5);
 	printMessage(" ");
 }
+void printVar(char *name){
+	int varIdx = variableExists(name);
+	if(varIdx == -1){
+		printMessage("Variable not found\n");
+		return;
+	}
+	int value = getVarValue(varIdx);
+	char buffer[10];
+	snprintf(buffer, sizeof(buffer), "%d\n", value);
+	printMessage(buffer);
+}
 
 
 
@@ -409,6 +420,7 @@ void exe(char *arg){
 			}
 		}
 		processArgument(intructions[i]);
+		printMessage(" ");
 		wait(64);
 	}
 }
@@ -428,6 +440,9 @@ void processArgument(char *arg){
 		int idx = strLen(argv[1]);
 		argv[1][idx] = '\n';
 		printMessage(argv[1]);
+	}
+	else if(compare(argv[0], "echovar")){
+		printVar(argv[1]);
 	}
 	else if(compare(argv[0], "ps")){
 		listProcesses();
@@ -472,7 +487,6 @@ void processArgument(char *arg){
 		if(content != NULL)
 			printMessage(content);
 		restorePath(currentPath);
-
 	}
 	else if(compare(argv[0], "edit")){
 		if(strLen(argv[1]) == 0)
@@ -576,10 +590,14 @@ void processArgument(char *arg){
 	else if(argv[0][0] == '.' && argv[0][1] == '/'){
 		exe(argv[0]);
 	}
-	else{
-		printMessage("Unrecognised Command. Try 'help' for options\n");
+	else if(compare(argv[0], "\n") || compare(argv[0], "")){
+		//do nothing
 	}
-	wait(2);
+	else{
+		printMessage(argv[0]);
+		printMessage(" is an unrecognised Command. Try 'help' for options\n");
+	}
+	wait(64);
 }
 
 
