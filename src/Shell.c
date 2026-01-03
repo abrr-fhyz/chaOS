@@ -296,10 +296,10 @@ void load(){
 		restorePath(currentPath);
 		return;
 	}
-	char buffer[10];
-	snprintf(buffer, sizeof(buffer), "%d", value); 
+	char bufferN[10];
+	snprintf(bufferN, sizeof(bufferN), "%d", value); 
 	wait(5);
-	logContent(fileIdx, buffer);
+	logContent(fileIdx, bufferN);
 	wait(5);
 	restorePath(currentPath);
 	wait(5);
@@ -546,7 +546,7 @@ void processArgument(char *arg){
 		compoundPaths[1][n] = '\n';
 		processDirectory(compoundPaths[0]);
 		int pos = convertToInt(compoundPaths[1]);
-		if(pos != -1){
+		if(pos < 0){
 			char x = read(fileName, pos);
 			setVarValue(0, (int)x);
 		}
@@ -561,7 +561,7 @@ void processArgument(char *arg){
 		compoundPaths[1][n] = '\n';
 		processDirectory(compoundPaths[0]);
 		int pos = convertToInt(compoundPaths[1]);
-		if(pos != -1){
+		if(pos < 0){
 			char x = (char)getVarValue(0);
 			write(fileName, pos, x);
 		}

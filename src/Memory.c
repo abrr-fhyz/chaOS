@@ -1,22 +1,25 @@
 #include "../lib/Memory.h"
 
+int reserved = 79808;
+int totalUse = 20;
+int mb = (1024*1024);
+
 void clearBuffer(){
 	for(int i=0; i<4096; i++)
 		buffer[i] = '\0';
 }
 
+int calculateAvailable(){
+	return totalUse - reserved - memoryUsed;
+}
+
 void mem(){
-	int reserved = 79808;
-	int totalUse = 20;
-	reserved *= 8;
-	totalUse *= (1024*1024);
-	int mb = (1024*1024);
 	printMessage(
 		"##########################################\n"
 		"#\t\tMEMORY STATUS\t\t #\n"
 		"##########################################\n\n");
 	clearBuffer();
-	int available = totalUse - reserved - memoryUsed;
+	int available = calculateAvailable();
 	float mb1 = (float) reserved / (float) mb;
 	float mb2 = (float) memoryUsed / (float) mb;
 	float mb3 = (float) available / (float) mb;
@@ -27,6 +30,8 @@ void mem(){
 
 void initMem(){
 	memoryUsed = 0;
+	reserved *= 8;
+	totalUse *= (1024*1024);
 }
 
 void updateFileSize(int before, int after){
@@ -35,18 +40,27 @@ void updateFileSize(int before, int after){
 }
 
 Directory* generateDirectory(){
+	if(calculateAvailable() < 4096){
+		return NULL;
+	}
 	Directory *newDir = (Directory*)malloc(sizeof(Directory));
 	memoryUsed += (19*8);
 	return newDir;
 }
 
 File* generateFile(){
+	if(calculateAvailable() < 4096){
+		return NULL;
+	}
 	File *newFile = (File*)malloc(sizeof(File));
 	memoryUsed += (17*8);
 	return newFile;
 }
 
 Variable* generateVariable(){
+	if(calculateAvailable() < (32 + 16*8)){
+		return NULL;
+	}
 	Variable *newVar = (Variable*)malloc(sizeof(Variable));
 	memoryUsed += (32 + 16*8);
 	return newVar;

@@ -328,6 +328,7 @@ void initFileSystem(){
 	pathAppend(root);
 	workingDirectory = root;
 	createProcess("filSys", fs_process);
+	varCnt = 0;
 	storeVar("ANS");
 	printMessage("\t\t\t\tFile System Boot Up\t\t---\t\t\tCompleted\n");
 }
